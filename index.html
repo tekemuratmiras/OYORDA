@@ -1,0 +1,38 @@
+
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OyOrda meeting</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0b0f14" />
+<style>
+html, body { height: 100%; margin: 0; background:#0b0f14; color:#fff; font-family:sans-serif; }
+iframe { border:0; width:100%; height:100%; }
+header { padding:10px; background:#111; color:#0f0; }
+button { padding:8px 14px; border:none; border-radius:6px; margin-left:8px; cursor:pointer; }
+</style>
+</head>
+<body>
+<header>
+OyOrda meeting
+<button id="installBtn">Орнату</button>
+<button onclick="document.documentElement.requestFullscreen()">Fullscreen</button>
+</header>
+<iframe src="https://synchronized-matrix-1clrit.sandbox.livekit.io" allow="camera; microphone; fullscreen; display-capture"></iframe>
+<script>
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBtn').onclick = () => {
+    deferredPrompt.prompt();
+  };
+});
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+</script>
+</body>
+</html>
