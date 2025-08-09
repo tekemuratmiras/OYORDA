@@ -1,9 +1,12 @@
-
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open('oyorda-v1').then((cache) => cache.addAll(['.', 'index.html', 'manifest.json']))
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open('oyorda-v1').then((cache) =>
+      cache.addAll(['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'])
+    )
   );
 });
-self.addEventListener('fetch', (e) => {
-  e.respondWith(caches.match(e.request).then((resp) => resp || fetch(e.request)));
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((resp) => resp || fetch(event.request))
+  );
 });
