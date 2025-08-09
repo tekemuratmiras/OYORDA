@@ -1,38 +1,82 @@
-
 <!DOCTYPE html>
 <html lang="kk">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>OyOrda meeting</title>
-<link rel="manifest" href="manifest.json" />
-<meta name="theme-color" content="#0b0f14" />
-<style>
-html, body { height: 100%; margin: 0; background:#0b0f14; color:#fff; font-family:sans-serif; }
-iframe { border:0; width:100%; height:100%; }
-header { padding:10px; background:#111; color:#0f0; }
-button { padding:8px 14px; border:none; border-radius:6px; margin-left:8px; cursor:pointer; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OyOrda meeting — PWA</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0b0f14" />
+
+  <style>
+    html, body { height:100%; margin:0; background:#0b0f14; color:#e6eef7; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
+    header { padding:10px 12px; display:flex; gap:8px; align-items:center; background:#111; position:sticky; top:0; }
+    .btn { border:0; padding:8px 12px; border-radius:10px; background:#1b2533; color:#e6eef7; cursor:pointer; }
+    .btn:hover { filter:brightness(1.1); }
+    #wrap { height: calc(100vh - 52px); display:grid; grid-template-rows: 1fr 320px; gap:10px; padding:10px; }
+    #video, #slidesWrap { position:relative; background:#101820; border-radius:16px; overflow:hidden; }
+    iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
+  </style>
 </head>
 <body>
-<header>
-OyOrda meeting
-<button id="installBtn">Орнату</button>
-<button onclick="document.documentElement.requestFullscreen()">Fullscreen</button>
-</header>
-<iframe src="https://synchronized-matrix-1clrit.sandbox.livekit.io" allow="camera; microphone; fullscreen; display-capture"></iframe>
-<script>
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  document.getElementById('installBtn').onclick = () => {
-    deferredPrompt.prompt();
-  };
-});
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js');
-}
-</script>
+  <header>
+    <strong>🟢 OyOrda meeting</strong>
+    <button id="installBtn" class="btn">Орнату (телефонға)</button>
+    <button id="fsBtn" class="btn">Fullscreen</button>
+  </header>
+
+  <div id="wrap">
+    <div id="video"></div>
+    <div id="slidesWrap"><iframe id="slides" src="about:blank" allowfullscreen></iframe></div>
+  </div>
+
+  <script>
+    // --- PWA install prompt ---
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installBtn').onclick = async () => {
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+      };
+    });
+
+    // iOS үшін ескерту (егер батырма шықпаса)
+    document.getElementById('installBtn').addEventListener('click', () => {
+      if (!deferredPrompt) alert('iOS: Share → Add to Home Screen арқылы орнатыңыз.');
+    });
+
+    // Service Worker тіркеу
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+
+    // Fullscreen
+    document.getElementById('fsBtn').addEventListener('click', async () => {
+      try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen(); } catch(e){}
+    });
+
+    // LiveKit hosted meeting (iframe)
+    const LIVEKIT_URL = "https://synchronized-matrix-1clrit.sandbox.livekit.io";
+    (function mount() {
+      const ifr = document.createElement('iframe');
+      ifr.src = LIVEKIT_URL;
+      ifr.allow = 'camera; microphone; fullscreen; display-capture';
+      document.getElementById('video').appendChild(ifr);
+    })();
+
+    // Slides
+    (function loadSlides() {
+      const saved = sessionStorage.getItem('oyorda_slides_url') || '';
+      const url = saved || prompt('Слайд (PDF/сурет) URL енгізіңіз:', '');
+      if (url) {
+        sessionStorage.setItem('oyorda_slides_url', url);
+        document.getElementById('slides').src = url;
+      }
+    })();
+  </script>
 </body>
 </html>
